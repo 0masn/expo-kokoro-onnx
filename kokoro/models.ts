@@ -60,7 +60,7 @@ export const MODELS = Object.freeze({
  * @param {string} modelId - The model ID (filename)
  * @returns {Promise<boolean>} - Whether the model is downloaded
  */
-export const isModelDownloaded = async (modelId) => {
+export const isModelDownloaded = async (modelId: string) => {
   try {
     const modelPath = FileSystem.cacheDirectory + modelId;
     const fileInfo = await FileSystem.getInfoAsync(modelPath);
@@ -78,14 +78,14 @@ export const isModelDownloaded = async (modelId) => {
 export const getDownloadedModels = async () => {
   try {
     const downloadedModels = [];
-    
+
     for (const modelId of Object.keys(MODELS)) {
       const isDownloaded = await isModelDownloaded(modelId);
       if (isDownloaded) {
         downloadedModels.push(modelId);
       }
     }
-    
+
     return downloadedModels;
   } catch (error) {
     console.error('Error getting downloaded models:', error);
@@ -99,15 +99,15 @@ export const getDownloadedModels = async () => {
  * @param {function} progressCallback - Callback for download progress
  * @returns {Promise<boolean>} - Whether the download was successful
  */
-export const downloadModel = async (modelId, progressCallback = null) => {
+export const downloadModel = async (modelId: string, progressCallback?: (progress: number) => void) => {
   try {
-    const model = MODELS[modelId];
+    const model = (MODELS as any)[modelId];
     if (!model) {
       throw new Error(`Model ${modelId} not found`);
     }
-    
+
     const modelPath = FileSystem.cacheDirectory + modelId;
-    
+
     // Create download resumable
     const downloadResumable = FileSystem.createDownloadResumable(
       model.url,
@@ -120,11 +120,11 @@ export const downloadModel = async (modelId, progressCallback = null) => {
         }
       }
     );
-    
+
     // Start download
-    const { uri } = await downloadResumable.downloadAsync();
-    
-    return !!uri;
+    const result = await downloadResumable.downloadAsync();
+
+    return !!result?.uri;
   } catch (error) {
     console.error('Error downloading model:', error);
     return false;
@@ -136,7 +136,7 @@ export const downloadModel = async (modelId, progressCallback = null) => {
  * @param {string} modelId - The model ID (filename)
  * @returns {Promise<boolean>} - Whether the deletion was successful
  */
-export const deleteModel = async (modelId) => {
+export const deleteModel = async (modelId: string) => {
   try {
     const modelPath = FileSystem.cacheDirectory + modelId;
     await FileSystem.deleteAsync(modelPath);

@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "TTS Demo",
-    "slug": "tts-demo",
+    "name": "VoiceLens",
+    "slug": "voicelens",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "sdkVersion": "52.0.0",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a0a0f"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -18,28 +18,38 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "NSCameraUsageDescription": "VoiceLens needs camera access to read text from documents.",
         "NSMicrophoneUsageDescription": "This app uses the microphone to record audio for speech recognition.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.allysonai.ttsdemo"
+      "bundleIdentifier": "com.allysonai.voicelens"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0a0a0f"
       },
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.INTERNET",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.INTERNET"
-      ]
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.allysonai.voicelens"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "VoiceLens needs camera access to read text from documents.",
+          "enableFrameProcessors": true
+        }
+      ],
       [
         "expo-av",
         {
@@ -51,13 +61,17 @@
         {
           "filePermission": "This app needs access to files on your device."
         }
-      ]  
+      ],
+      "expo-dev-client",
+      "expo-asset",
+      "expo-build-properties"
     ],
     "newArchEnabled": true,
     "extra": {
       "eas": {
-        "projectId": "c265b042-3630-4654-adeb-ffa944bd0fad"
+        "projectId": "aae2f4c4-9eb0-4120-95f9-b0469a6e4363"
       }
-    }
+    },
+    "owner": "0masn"
   }
 }

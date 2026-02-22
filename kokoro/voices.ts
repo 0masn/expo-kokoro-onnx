@@ -1,6 +1,15 @@
 import * as FileSystem from 'expo-file-system';
 
-export const VOICES = Object.freeze({
+export interface VoiceMetadata {
+  name: string;
+  language: string;
+  gender: string;
+  traits?: string;
+  targetQuality?: string;
+  overallGrade?: string;
+}
+
+export const VOICES: Record<string, VoiceMetadata> = Object.freeze({
   af_heart: {
     name: "Heart",
     language: "en-us",
@@ -211,14 +220,14 @@ const VOICE_DATA_URL = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ON
 
 /**
  *
- * @param {keyof typeof VOICES} id
+ * @param {string} id
  * @returns {Promise<ArrayBufferLike>}
  */
-async function getVoiceFile(id) {
+async function getVoiceFile(id: string): Promise<ArrayBufferLike> {
   try {
     const filePath = `${FileSystem.documentDirectory}voices/${id}.bin`;
     const fileInfo = await FileSystem.getInfoAsync(filePath);
-    
+
     if (fileInfo.exists) {
       const base64Data = await FileSystem.readAsStringAsync(filePath, { encoding: FileSystem.EncodingType.Base64 });
       return _base64ToArrayBuffer(base64Data);
@@ -229,33 +238,12 @@ async function getVoiceFile(id) {
 
   try {
     const url = `${VOICE_DATA_URL}/${id}.bin`;
-    
-    let cache;
-    try {
-      cache = await caches.open("kokoro-voices");
-      const cachedResponse = await cache.match(url);
-      if (cachedResponse) {
-        return await cachedResponse.arrayBuffer();
-      }
-    } catch (e) {
-      console.warn("Unable to open cache", e);
-    }
+
+    // In React Native Expo, we don't usually use the browser 'caches' API
+    // We rely on FileSystem for caching.
 
     const response = await fetch(url);
     const buffer = await response.arrayBuffer();
-
-    if (cache) {
-      try {
-        await cache.put(
-          url,
-          new Response(buffer, {
-            headers: response.headers,
-          }),
-        );
-      } catch (e) {
-        console.warn("Unable to cache voice file", e);
-      }
-    }
 
     try {
       const dirPath = `${FileSystem.documentDirectory}voices`;
@@ -263,7 +251,7 @@ async function getVoiceFile(id) {
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
       }
-      
+
       const base64Data = _arrayBufferToBase64(buffer);
       await FileSystem.writeAsStringAsync(
         `${dirPath}/${id}.bin`,
@@ -281,17 +269,18 @@ async function getVoiceFile(id) {
   }
 }
 
-function _arrayBufferToBase64(buffer) {
+function _arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
   const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
+  // In React Native, btoa is usually available or shimmed
   return btoa(binary);
 }
 
-function _base64ToArrayBuffer(base64) {
+function _base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binary_string = atob(base64);
   const len = binary_string.length;
   const bytes = new Uint8Array(len);
@@ -301,10 +290,10 @@ function _base64ToArrayBuffer(base64) {
   return bytes.buffer;
 }
 
-const VOICE_CACHE = new Map();
-export async function getVoiceData(voice) {
+const VOICE_CACHE = new Map<string, Float32Array>();
+export async function getVoiceData(voice: string): Promise<Float32Array> {
   if (VOICE_CACHE.has(voice)) {
-    return VOICE_CACHE.get(voice);
+    return VOICE_CACHE.get(voice)!;
   }
 
   const buffer = new Float32Array(await getVoiceFile(voice));
